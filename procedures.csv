@@ -1,0 +1,16 @@
+﻿CPT,Name_EN,Name_AR,Category
+61510,"Craniotomy for excision of brain tumor, supratentorial",حج القحف لاستئصال ورم (فوق الخيمة),Cranial - Tumor
+61512,"Craniotomy for excision of meningioma, supratentorial",حج القحف لاستئصال سحائية,Cranial - Tumor
+61518,"Craniotomy for excision of brain tumor, infratentorial (posterior fossa)",حج القحف لاستئصال ورم (الحفرة الخلفية),Cranial - Tumor
+61750,Stereotactic biopsy of brain lesion,خزعة دماغ استيريوتالك,Cranial - Tumor
+61154,Burr hole(s) with evacuation of subdural hematoma,ثقب الجمجمة لتفريغ نزيف تحت الجافية,Cranial - Trauma
+62223,Creation of shunt; ventriculo-peritoneal (VP Shunt),تركيب صمام مخي بريتوني (VP Shunt),CSF / Shunt
+62230,Replacement or revision of shunt valve,مراجعة/تغيير صمام المخ,CSF / Shunt
+63030,"Laminotomy with discectomy, lumbar, 1 interspace",استئصال الغضروف القطني (ديسك),Spine - Lumbar
+63047,"Laminectomy (Decompression), lumbar",توسيع القناة العصبية القطنية,Spine - Lumbar
+22612,"Arthrodesis, posterior lumbar (Fusion)",تثبيت/دمج الفقرات القطنية (Fusion),Spine - Lumbar
+22840,Posterior instrumentation; non-segmental (Rod & Screws),مسامير/شرائح (إضافة لعملية التثبيت),Spine - Implants
+22551,"Arthrodesis, anterior interbody, cervical (ACDF)",دمج الفقرات العنقية الأمامي (ACDF),Spine - Cervical
+63020,"Laminotomy with discectomy, cervical, 1 interspace (Posterior)",استئصال الغضروف العنقي (خلفي),Spine - Cervical
+63650,Implantation of spinal neurostimulator electrodes (SCS),زراعة أقطاب محفز الحبل الشوكي (SCS),Functional / Pain
+64721,Neuroplasty; median nerve at carpal tunnel,تحرير العصب المتوسط (Carpal Tunnel),Peripheral Nerve
