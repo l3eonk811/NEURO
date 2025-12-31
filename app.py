@@ -7,6 +7,7 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
+from streamlit_js_eval import streamlit_js_eval
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -204,6 +205,21 @@ html, body, [class*="css"]  {
   background: rgba(255,255,255,0.04);
   font-size: 12px;
 }
+
+/* Responsive spacing */
+.block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
+
+@media (max-width: 768px) {
+  .block-container { padding-left: 0.8rem; padding-right: 0.8rem; }
+  .card { padding: 12px; border-radius: 14px; }
+  .small-muted { font-size: 11px; }
+  .badge { font-size: 11px; padding: 4px 9px; }
+}
+
+@media (max-width: 420px) {
+  .block-container { padding-left: 0.6rem; padding-right: 0.6rem; }
+  .card { padding: 10px; }
+}
 </style>
 """,
     unsafe_allow_html=True,
@@ -219,7 +235,14 @@ if "sid" not in st.session_state:
 if "latest_pdf_bytes" not in st.session_state:
     st.session_state["latest_pdf_bytes"] = None
     st.session_state["latest_pdf_name"] = None
-    st.session_state["latest_summary"] = None
+    width = streamlit_js_eval(js_expressions="window.innerWidth", key="WIN_WIDTH")
+is_mobile = False
+try:
+    is_mobile = (width is not None) and (int(width) < 768)
+except Exception:
+    is_mobile = False
+
+st.session_state["latest_summary"] = None
 
 
 # ----------------------------
@@ -297,25 +320,41 @@ with tab_assess:
     criteria = safe_json_list(rule.get("Criteria_Symptoms_JSON"))
     redflags = safe_json_list(rule.get("RedFlag_Exceptions_JSON"))
 
-    c1, c2, c3 = st.columns([1.3, 1.1, 1.1])
-
-    with c1:
+    if is_mobile:
         st.subheader("Clinical criteria")
         if not criteria:
             st.caption("No structured criteria for this procedure.")
         crit_selected = [x for x in criteria if st.checkbox(x, key=f"crit_{selected_cpt}_{x}")]
 
-    with c2:
         st.subheader("Red flags (bypass)")
         if not redflags:
             st.caption("No red-flag bypass rules defined.")
         red_selected = [x for x in redflags if st.checkbox(x, key=f"rf_{selected_cpt}_{x}")]
 
-    with c3:
         st.subheader("Primary evidence")
         st.caption(f"Type: {rule.get('Required_Imaging','Evidence')}")
         evidence_done = st.checkbox("Evidence available / attached", value=True)
         evidence_age_days = st.number_input("Evidence age (days)", min_value=0, max_value=3650, value=30, step=1)
+    else:
+        c1, c2, c3 = st.columns([1.3, 1.1, 1.1])
+
+        with c1:
+            st.subheader("Clinical criteria")
+            if not criteria:
+                st.caption("No structured criteria for this procedure.")
+            crit_selected = [x for x in criteria if st.checkbox(x, key=f"crit_{selected_cpt}_{x}")]
+
+        with c2:
+            st.subheader("Red flags (bypass)")
+            if not redflags:
+                st.caption("No red-flag bypass rules defined.")
+            red_selected = [x for x in redflags if st.checkbox(x, key=f"rf_{selected_cpt}_{x}")]
+
+        with c3:
+            st.subheader("Primary evidence")
+            st.caption(f"Type: {rule.get('Required_Imaging','Evidence')}")
+            evidence_done = st.checkbox("Evidence available / attached", value=True)
+            evidence_age_days = st.number_input("Evidence age (days)", min_value=0, max_value=3650, value=30, step=1)
 
     st.divider()
 
@@ -429,8 +468,11 @@ with tab_report:
         st.markdown("#### Actions")
         pdf_bytes = st.session_state["latest_pdf_bytes"]
         pdf_name = st.session_state["latest_pdf_name"] or "evidence_pack.pdf"
-        pdf_print_widget(pdf_bytes, filename=pdf_name)
-        st.caption("Tip: Print uses your browser print dialog. If your browser blocks popups, allow popups for localhost.")
+        if is_mobile:
+            st.download_button("⬇️ Download PDF", data=pdf_bytes, file_name=pdf_name, mime="application/pdf", use_container_width=True)
+        else:
+            pdf_print_widget(pdf_bytes, filename=pdf_name)
+            st.caption("Tip: Print uses your browser print dialog. If your browser blocks popups, allow popups for localhost.")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab_about:
