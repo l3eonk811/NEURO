@@ -253,32 +253,14 @@ with st.sidebar:
     st.markdown(f"<div class='small-muted'>{COMPANY_NAME}<br>{TAGLINE}</div>", unsafe_allow_html=True)
     st.markdown("---")
 
+    # Data load (no core workflow controls in sidebar)
     proc_df = load_csv("procedures.csv")
     dx_df = load_csv("diagnoses.csv")
     rules_df = load_csv("rules_advanced.csv")
 
-    proc_df["Label"] = proc_df["CPT"].astype(str) + " — " + proc_df["Name_EN"].astype(str)
-    selected_label = st.selectbox("Procedure (CPT)", proc_df["Label"].tolist())
-    selected_cpt = selected_label.split("—")[0].strip()
-
-    rule_row = rules_df[rules_df["CPT_Code"].astype(str) == str(selected_cpt)]
-    if rule_row.empty:
-        st.error(f"No rule found for CPT {selected_cpt}. Run setup script again.")
-        st.stop()
-    rule = rule_row.iloc[0].to_dict()
-
-    st.markdown(
-        f"<div class='badge'>Rule: {rule.get('Rule_Version','n/a')}</div>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        f"<div class='small-muted'>Evidence: <b>{rule.get('Required_Imaging','Evidence')}</b> "
-        f"(≤ {int(rule['Imaging_Max_Age_Days'])} days)</div>",
-        unsafe_allow_html=True
-    )
-    st.markdown("---")
-
+    st.markdown("### ⚙️ Settings")
     show_debug = st.checkbox("Show debug panel", value=False)
+
 
 # ----------------------------
 # Top bar
@@ -296,6 +278,41 @@ with top_r:
         unsafe_allow_html=True
     )
 
+
+# ----------------------------
+# Main selection bar (always visible)
+# ----------------------------
+st.markdown("<div class='card'>", unsafe_allow_html=True)
+sel1, sel2 = st.columns([1.4, 1.2])
+
+# Procedure select (main page, not sidebar)
+proc_df["Label"] = proc_df["CPT"].astype(str) + " — " + proc_df["Name_EN"].astype(str)
+with sel1:
+    selected_label = st.selectbox("Procedure (CPT)", proc_df["Label"].tolist(), key="proc_main")
+    selected_cpt = selected_label.split("—")[0].strip()
+
+# Rule + Diagnosis select
+with sel2:
+    rule_row = rules_df[rules_df["CPT_Code"].astype(str) == str(selected_cpt)]
+    if rule_row.empty:
+        st.error(f"No rule found for CPT {selected_cpt}. Run setup script again.")
+        st.stop()
+    rule = rule_row.iloc[0].to_dict()
+
+    st.markdown(f"<div class='badge'>Rule: {rule.get('Rule_Version','n/a')}</div>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div class='small-muted'>Evidence: <b>{rule.get('Required_Imaging','Evidence')}</b> "
+        f"(≤ {int(rule['Imaging_Max_Age_Days'])} days)</div>",
+        unsafe_allow_html=True
+    )
+
+    allowed_icd = safe_json_list(rule.get("Allowed_ICD_JSON"))
+    dx_view = dx_df[dx_df["ICD_Code"].isin(allowed_icd)].copy() if allowed_icd else dx_df.copy()
+    dx_view["DxLabel"] = dx_view["ICD_Code"] + " — " + dx_view["Description"]
+    selected_dx = st.selectbox("Diagnosis (ICD)", dx_view["DxLabel"].tolist(), key="dx_main")
+
+st.markdown("</div>", unsafe_allow_html=True)
+
 if show_debug:
     with st.expander("Debug (paths & data)"):
         st.write(f"BASE_DIR: `{BASE_DIR}`")
@@ -310,12 +327,6 @@ tab_assess, tab_report, tab_about = st.tabs(["Assessment", "Evidence Pack", "Abo
 
 with tab_assess:
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-
-    # Diagnosis filtering
-    allowed_icd = safe_json_list(rule.get("Allowed_ICD_JSON"))
-    dx_view = dx_df[dx_df["ICD_Code"].isin(allowed_icd)].copy() if allowed_icd else dx_df.copy()
-    dx_view["DxLabel"] = dx_view["ICD_Code"] + " — " + dx_view["Description"]
-    selected_dx = st.selectbox("Diagnosis (ICD)", dx_view["DxLabel"].tolist())
 
     criteria = safe_json_list(rule.get("Criteria_Symptoms_JSON"))
     redflags = safe_json_list(rule.get("RedFlag_Exceptions_JSON"))
