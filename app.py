@@ -17,6 +17,7 @@ from reportlab.pdfgen import canvas
 APP_NAME = "NeuroAuth™"
 COMPANY_NAME = "NeuroAuth Labs"
 TAGLINE = "Pre-Authorization Compliance Assistant"
+APP_BUILD = "v5.1-sidebar-fix"
 PRIMARY_ICON = "🧠"
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -183,7 +184,20 @@ st.markdown(
 /* Hide Streamlit chrome */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
-header {visibility: hidden;}
+
+/* Keep sidebar toggle visible even if Streamlit header is hidden/modified */
+[data-testid="stSidebarCollapsedControl"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 999999;
+}
+
+/* Optional: hide header content but keep layout stable */
+[data-testid="stHeader"] { background: transparent; }
 
 /* App typography */
 html, body, [class*="css"]  {
@@ -251,9 +265,10 @@ st.session_state["latest_summary"] = None
 with st.sidebar:
     st.markdown(f"## {PRIMARY_ICON} {APP_NAME}")
     st.markdown(f"<div class='small-muted'>{COMPANY_NAME}<br>{TAGLINE}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='badge'>Build: {APP_BUILD}</div>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # Data load (no core workflow controls in sidebar)
+    # Data load (kept in scope, but no workflow widgets here)
     proc_df = load_csv("procedures.csv")
     dx_df = load_csv("diagnoses.csv")
     rules_df = load_csv("rules_advanced.csv")
@@ -273,7 +288,7 @@ with top_r:
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     st.markdown(
         f"<div style='text-align:right' class='small-muted'>"
-        f"{COMPANY_NAME}<br>Session: {st.session_state['sid'][:8]} • {now}"
+        f"{COMPANY_NAME}<br>Build: {APP_BUILD} • Session: {st.session_state['sid'][:8]} • {now}"
         f"</div>",
         unsafe_allow_html=True
     )
